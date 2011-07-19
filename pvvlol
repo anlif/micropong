@@ -1,0 +1,38 @@
+
+/*void drawPVV(){
+	//P
+	drawLine(0, 0, 0, 16);
+	drawLine(0,16,2,16);
+	drawLine(2,16,2,9);
+	drawLine(2,9,5,9);
+	drawLine(5,9,8,6);
+	drawLine(8,6,8,3);
+	drawLine(8,3,5,0);
+	drawLine(5,0,0,0);
+
+	drawLine(2,2,5,2);
+	drawLine(5,2,6,3);
+	drawLine(6,3,6,6);
+	drawLine(6,6,5,7);
+	drawLine(5,7,2,7);
+	drawLine(2,7,2,2);
+
+	//V1
+	drawLine(9,0,11,0);
+	drawLine(11,0,17,13);
+	drawLine(17,13,23,0);
+	drawLine(23,0,25,0);
+	drawLine(25,0,19,16);
+	drawLine(19,16,15,16);
+	drawLine(15,16,9,0);
+	
+	//V2
+	drawLine(9+16,0,11+16,0);
+	drawLine(11+16,0,17+16,13);
+	drawLine(17+16,13,23+16,0);
+	drawLine(23+16,0,25+16,0);
+	drawLine(25+16,0,19+16,16);
+	drawLine(19+16,16,15+16,16);
+	drawLine(15+16,16,9+16,0);
+
+}
