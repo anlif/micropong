@@ -11,7 +11,7 @@ MCUSHORT=x128a1
 F_CPU=32000000L
 
 
-SRC = main.c
+SRC = main.c draw.c hw.c pong.c
 OBJ = $(SRC:.c=.o)
 
 

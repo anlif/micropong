@@ -1,16 +1,26 @@
+#ifndef DRAW_H
+#define DRAW_H
+
 // Screen parameters
 // NOTE: both XRES and YRES
 #define XRES 	64	
 #define YRES 	64
-#define BUFFER_SIZE ((XRES)*(YRES))
+#define BUFFER_MAX_POINTS ((XRES)*(YRES))
 
 typedef struct {
 	int x;
 	int y;
-} point;
+} point_t;
 
-// Screen buffer and lookup table for DAC
-static point buffer1[BUFFER_SIZE];
-static point buffer2[BUFFER_SIZE];
-static point (*read_buffer) = buffer1;
-static point (*write_buffer) = buffer2;
+typedef struct {
+	point_t buffer[BUFFER_MAX_POINTS];
+	int num_points;
+} drawbuffer_t;
+
+void draw_init(int num_points, point_t* data);
+
+point_t draw_next_point();
+
+void draw_swap_buffers();
+
+#endif
