@@ -91,21 +91,24 @@ void hw_init(){
 }
 
 void hw_draw(){
-	// clear screen to black
-	SDL_Color black = {0, 0, 0, 0};	
-	SDL_SetColors(screen, &black, 0, 1);	
+	static int print = 1;
 
+	// clear screen to black
+	drawRect(screen, 0,0,XRES*SCALE_FACTOR,YRES*SCALE_FACTOR,0);
 
 	point_t first_point = draw_next_point();
 	hw_set_pixel(first_point);
+	
+	if(print) printf("Point: {%i, %i}\n", first_point.x, first_point.y);
 
 	point_t current_point = draw_next_point();
 	while(!(current_point.x == first_point.x && current_point.y == first_point.y)){
 		hw_set_pixel(current_point);
 		current_point = draw_next_point();
+		if(print) printf("Point: {%i, %i}\n", current_point.x, current_point.y);
 	}
 
-	
+	print = 0;	
 	SDL_UpdateRect(screen, 0, 0, 0, 0); // update entire screen
 
 	int current_ticks = SDL_GetTicks();
@@ -115,13 +118,41 @@ void hw_draw(){
 
 }
 
-int hw_quit(){
+static enum HW_INPUT_KEYS get_key(SDL_Event* event){
+	switch(event->key.keysym.sym){
+		case SDLK_UP:
+			return TWO_UP;
+		case SDLK_DOWN:
+			return TWO_DOWN;
+		case SDLK_w:
+			return ONE_UP;
+		case SDLK_s:
+			return ONE_DOWN;
+		default:
+			// no relevant key
+			return NO_INPUT;
+	}
+	// shouldnt really get here
+	return NO_INPUT;
+}
+
+enum HW_INPUT_KEYS hw_get_input(){
 	SDL_Event event;
 	while(SDL_PollEvent(&event)){
-		if(event.type == SDL_QUIT) return 1;
+		switch(event.type){
+			case SDL_KEYDOWN:
+				return get_key(&event);
+			case SDL_QUIT:
+				return EXIT;
+			default:
+				// no relevant input
+				break;
+		}
 	}
-	return 0;
+	return NO_INPUT;
 }
+
+
 
 void hw_deinit(){
 	SDL_Quit();

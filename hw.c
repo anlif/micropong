@@ -15,24 +15,18 @@ static bool move_flag = true;
 // Interrupt callbacks
 // painting interrupt
 ISR(TCE1_OVF_vect){
-	static int t = 0;
-	static point_t p = {0,0};
-
-	if(t){
-		DACA.CH1DATA = ylookup[p.y];
-		t = 0;
-	}
-	else{
-		p = draw_next_point();
-		DACA.CH0DATA = xlookup[p.x];
-		t = 1;
-	}
+	static bool t = false;
+	static int q = 1;
+	static point_t current = {0,0};
+	static point_t previous = {0,0};
+	
+	current = draw_next_point();
+	LEDPORT.OUT = current.y;
 }
 
 // move timing
 ISR(TCE0_OVF_vect){
 	move_flag = true;		
-	LEDPORT.OUTTGL = 0xff;
 }
 
 void hw_wait(){
@@ -41,9 +35,6 @@ void hw_wait(){
 	move_flag = false;
 }
 
-
-void hw_set_pixel(point_t point){
-}
 
 static void calc_lookup(){
 	// Calculate xlookup and ylookup
@@ -75,14 +66,14 @@ static void init_DAC(){
 	DACA.CTRLB |= DAC_CHSEL_DUAL_gc;
 	DACA.CTRLC |= DAC_REFSEL_AVCC_gc;
 	DACA.TIMCTRL &= ~DAC_CONINTVAL_gm;
-	DACA.TIMCTRL = DAC_CONINTVAL_128CLK_gc | DAC_REFRESH_OFF_gc;
+	DACA.TIMCTRL = DAC_CONINTVAL_64CLK_gc | DAC_REFRESH_OFF_gc;
 }
 
 static void init_timers(){
 	//Setup timer1: framebuffer output, with overflow interrupt.
 	TCE1.CTRLA = TC_CLKSEL_DIV1024_gc;
 	TCE1.INTCTRLA = (TCE1.INTCTRLA & ~TC1_OVFINTLVL_gm) | TC_OVFINTLVL_HI_gc;
-	TCE1.PER = 0x28B0;
+	TCE1.PER = 0xF00;
 
 
 	//Setup timer2: other stuff with overflow interrupt

@@ -15,6 +15,10 @@ void draw_init(int points, point_t* data){
 	back_buffer = &buffer2;
 }
 
+point_t* draw_get_back_buffer(){
+	return back_buffer->buffer;
+}
+
 point_t draw_next_point(){
 	static int index = 0;
 	index = (index+1) % read_buffer->num_points;
