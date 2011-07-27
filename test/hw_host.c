@@ -91,7 +91,7 @@ void hw_init(){
 }
 
 void hw_draw(){
-	static int print = 1;
+	static int print = 0;
 
 	// clear screen to black
 	drawRect(screen, 0,0,XRES*SCALE_FACTOR,YRES*SCALE_FACTOR,0);

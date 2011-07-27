@@ -11,24 +11,23 @@ int main(){
 		// pong move
 		switch(hw_get_input()){
 			case ONE_UP:
-				pong_move(PADDLE_LEFT, PADDLE_UP);
 				break;
 			case ONE_DOWN:
-				pong_move(PADDLE_LEFT, PADDLE_DOWN);
 				break;
 			case TWO_UP:
-				pong_move(PADDLE_RIGHT, PADDLE_UP);
 				break;
 			case TWO_DOWN:
-				pong_move(PADDLE_RIGHT, PADDLE_DOWN);
 				break;
 			case EXIT:
 				run = 0;
 				break;
-		}	
+		}
+		
+		pong_move_ball();
 		
 		hw_draw(); // blocks for timing
 		draw_swap_buffers();
+		draw_copy_buffers();
 		
 	}
 
