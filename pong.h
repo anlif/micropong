@@ -19,6 +19,8 @@
 #define IN_BOUNDS_X( x ) (( x >= 0) && (x < (XRES)))
 #define IN_BOUNDS_Y( y ) (( y >= 0) && (y < (YRES)))
 
+#define MAGIC_DY_FUNCTION( ball_state_y, paddle_state_y )  (((ball_state_y+(BALL_HEIGHT/2)) - \
+								(paddle_state_y + (PADDLE_HEIGHT/2)))/2)
 
 enum {
 	PONG_PADDLE_LEFT,
@@ -34,5 +36,6 @@ void pong_init();
 
 // Move a paddle, returns 0 on success, 1 on failure
 int pong_move_paddle(int piece, int y);
+int pong_get_paddle_state(int piece);
 
 #endif
