@@ -61,6 +61,7 @@ int pong_move_ball(){
 	static int dx = 1;
 	static int dy = 0;
 	static int offset = 2*PADDLE_SIZE;
+	static int hits = 0;
 
 	point_t* piece_buffer = draw_get_back_buffer();	
 	
@@ -68,37 +69,44 @@ int pong_move_ball(){
 	// Left paddle collision:
 	if(ball_state.x == PADDLE_LEFT_X+PADDLE_WIDTH && dx < 0){
 		// One of two, paddle right wins or ball bounces to the right 
-		if(ball_state.y >= paddle_left_state_y){
+		if(ball_state.y >= paddle_left_state_y && ball_state.y <= paddle_left_state_y+PADDLE_HEIGHT){
 			dx = 1;
+			++hits;
 		}
 		else{
 			return PONG_WIN_RIGHT;
 		}
 
-		dy += MAGIC_DY_FUNCTION( ball_state.y, paddle_left_state_y );
+		dy = (dy+MAGIC_DY_FUNCTION( ball_state.y, paddle_left_state_y ) % DY_MAX);
 	}
 	
 	if(ball_state.x == PADDLE_RIGHT_X-BALL_WIDTH && dx > 0){
 		// One of two, paddle left wins or ball bounces to the left
-		if(ball_state.y >= paddle_right_state_y){
+		if(ball_state.y >= paddle_right_state_y && ball_state.y <= paddle_right_state_y+PADDLE_HEIGHT){
 			dx = -1;
+			++hits;
 		}
 		else{
 			return PONG_WIN_LEFT;
 		}
 		
-		dy += MAGIC_DY_FUNCTION( ball_state.y, paddle_right_state_y );
-	}
-	
-	if(ball_state.y == 0){
-		dy = -dy;
-	}
-	if(ball_state.y+BALL_HEIGHT == YRES){
-		dy = -dy;
+		dy = (dy+MAGIC_DY_FUNCTION(ball_state.y, paddle_right_state_y)) % DY_MAX;
 	}
 
-	if(!IN_BOUNDS_Y(ball_state.y+dy)){
-		dy = 0;
+	if(hits == DX_INTERVAL){
+		dx += dx > 0? 1 : -1;
+		hits = 0;
+	}
+	
+	if(ball_state.y == 0 || ball_state.y+BALL_HEIGHT == YRES ){
+		dy = -dy;
+	}
+	
+	while(ball_state.y+BALL_HEIGHT + dy > YRES){
+		dy -= 1;
+	}
+	while(ball_state.y + dy < 0){
+		dy += 1;
 	}
 
 	ball_state.x = piece_buffer[offset].x + dx;
@@ -132,7 +140,7 @@ int pong_move_paddle(int piece, int y){
 			return 1;
 	}
 
-
+	
 
 	for(int i = 0; i < PADDLE_WIDTH; ++i){
 		for(int j = 0; j < PADDLE_HEIGHT; ++j){
