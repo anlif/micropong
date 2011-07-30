@@ -86,12 +86,16 @@ void hw_init(){
 		exit(1);
 	}
 
+	if(SDL_EnableKeyRepeat(1, 1)){
+		printf("Error in enabling key repeat");
+	}
+
 	ticks_last_draw = SDL_GetTicks();
 
 }
 
 void hw_draw(){
-	static int print = 1;
+	static int print = 0;
 
 	// clear screen to black
 	drawRect(screen, 0,0,XRES*SCALE_FACTOR,YRES*SCALE_FACTOR,0);
@@ -115,7 +119,6 @@ void hw_draw(){
 	int delta = (current_ticks - ticks_last_draw) % (1000/DRAW_RATE);
 	int delay = (1000/DRAW_RATE) - delta;
 	SDL_Delay(delay);
-
 }
 
 static enum HW_INPUT_KEYS get_key(SDL_Event* event){
