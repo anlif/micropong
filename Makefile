@@ -16,8 +16,8 @@ OBJ = $(SRC:.c=.o)
 
 
 # Compiler / Linker flags:
-CFLAGS = -mmcu=$(MCU) -Wall -Os -std=gnu99 -D F_CPU=$(F_CPU) -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums
-LDFLAGS = -mmcu=$(MCU) -Wl,-Map=$(TARGET).map
+CFLAGS = -g -mmcu=$(MCU) -Wall -Os -std=gnu99 -D F_CPU=$(F_CPU) -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums
+LDFLAGS = -g -mmcu=$(MCU) -Wl,-Map=$(TARGET).map
 
 
 
@@ -30,9 +30,10 @@ LDFLAGS = -mmcu=$(MCU) -Wl,-Map=$(TARGET).map
 compile: $(TARGET).hex $(TARGET).eep $(TARGET).lss
 
 flash: compile
-	avrdude -c dragon_jtag -P usb -p $(MCUSHORT) -U flash:w:$(TARGET).hex
+	avrdude -c jtagmkII -P usb -p $(MCUSHORT) -U flash:w:$(TARGET).hex
+#avrdude -c jtagmkII -P usb -p $(MCUSHORT) -U eeprom:w:$(TARGET).eep
+#	avrdude -c dragon_jtag -P usb -p $(MCUSHORT) -U flash:w:$(TARGET).hex
 # sleep 2
-# avrdude -c jtagmkII -P usb -p $(MCUSHORT) -U eeprom:w:$(TARGET).eep
 
 clean:
 	rm -f $(OBJ) $(TARGET).*

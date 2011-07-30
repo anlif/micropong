@@ -19,10 +19,10 @@ point_t* draw_get_back_buffer(){
 	return back_buffer->buffer;
 }
 
-point_t draw_next_point(){
+point_t* draw_next_point(){
 	static int index = 0;
 	index = (index+1) % read_buffer->num_points;
-	return (read_buffer->buffer)[index];
+	return &(read_buffer->buffer)[index];
 }
 
 void draw_swap_buffers(){
