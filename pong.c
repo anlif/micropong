@@ -1,12 +1,13 @@
 #include "pong.h"
 #include "draw.h"
 #include <stdio.h>
+#include <stdint.h>
 
-static int paddle_left_state_y;
-static int paddle_right_state_y;
+static uint8_t paddle_left_state_y;
+static uint8_t paddle_right_state_y;
 static point_t ball_state;
 
-int pong_get_paddle_state(int piece){
+uint8_t pong_get_paddle_state(uint8_t piece){
 	switch(piece){
 		case PONG_PADDLE_LEFT:
 			return paddle_left_state_y;
@@ -31,12 +32,12 @@ void pong_init(){
 
 	point_t points[PONG_BUFFER_SIZE];
 
-	for(int i = 0; i < PADDLE_WIDTH; ++i){
-		for(int j = 0; j < PADDLE_HEIGHT; j++){
-			int x1 = paddle_left_origin.x + i;
-			int y1 = paddle_left_origin.y + j;
-			int x2 = paddle_right_origin.x + i;
-			int y2 = paddle_right_origin.y + j;
+	for(uint8_t i = 0; i < PADDLE_WIDTH; ++i){
+		for(uint8_t j = 0; j < PADDLE_HEIGHT; j++){
+			uint8_t x1 = paddle_left_origin.x + i;
+			uint8_t y1 = paddle_left_origin.y + j;
+			uint8_t x2 = paddle_right_origin.x + i;
+			uint8_t y2 = paddle_right_origin.y + j;
 			points[i*PADDLE_HEIGHT+j].x = x1;
 			points[i*PADDLE_HEIGHT+j].y = y1;
 			points[i*PADDLE_HEIGHT+j + PADDLE_SIZE].x = x2;
@@ -44,10 +45,10 @@ void pong_init(){
 		}
 	}
 
-	for(int i = 0; i < BALL_WIDTH; ++i){
-		for(int j = 0; j < BALL_HEIGHT; j++){
-			int x = ball_origin.x + i;
-			int y = ball_origin.y + j;
+	for(uint8_t i = 0; i < BALL_WIDTH; ++i){
+		for(uint8_t j = 0; j < BALL_HEIGHT; j++){
+			uint8_t x = ball_origin.x + i;
+			uint8_t y = ball_origin.y + j;
 			points[2*PADDLE_SIZE + i*BALL_HEIGHT + j].x = x;
 			points[2*PADDLE_SIZE + i*BALL_HEIGHT + j].y = y;
 		}
@@ -57,40 +58,38 @@ void pong_init(){
 }
 
 // Returns 
-int pong_move_ball(){
-	static int dx = 1;
-	static int dy = 0;
-	static int offset = 2*PADDLE_SIZE;
-	static int hits = 0;
+uint8_t pong_move_ball(){
+	static int8_t dx = 1;
+	static int8_t dy = 0;
+	static uint8_t offset = 2*PADDLE_SIZE;
+	static uint8_t hits = 0;
 
 	point_t* piece_buffer = draw_get_back_buffer();	
 	
 	// If collision, calc new dx/dy
 	// Left paddle collision:
-	if(ball_state.x == PADDLE_LEFT_X+PADDLE_WIDTH && dx < 0){
+	if(ball_state.x <= PADDLE_LEFT_X+PADDLE_WIDTH && dx < 0){
 		// One of two, paddle right wins or ball bounces to the right 
 		if(ball_state.y >= paddle_left_state_y && ball_state.y <= paddle_left_state_y+PADDLE_HEIGHT){
-			dx = 1;
+			dx = -dx;
 			++hits;
 		}
 		else{
 			return PONG_WIN_RIGHT;
 		}
-
-		dy = (dy+MAGIC_DY_FUNCTION( ball_state.y, paddle_left_state_y ) % DY_MAX);
+		dy = (dy+MAGIC_DY_FUNCTION( ball_state.y, paddle_left_state_y ) & DY_MAX);
 	}
 	
-	if(ball_state.x == PADDLE_RIGHT_X-BALL_WIDTH && dx > 0){
+	if(ball_state.x >= PADDLE_RIGHT_X-BALL_WIDTH && dx > 0){
 		// One of two, paddle left wins or ball bounces to the left
 		if(ball_state.y >= paddle_right_state_y && ball_state.y <= paddle_right_state_y+PADDLE_HEIGHT){
-			dx = -1;
+			dx = -dx;
 			++hits;
 		}
 		else{
 			return PONG_WIN_LEFT;
 		}
-		
-		dy = (dy+MAGIC_DY_FUNCTION(ball_state.y, paddle_right_state_y)) % DY_MAX;
+		dy = ((dy+MAGIC_DY_FUNCTION(ball_state.y, paddle_right_state_y)) & DY_MAX);
 	}
 
 	if(hits == DX_INTERVAL){
@@ -105,25 +104,35 @@ int pong_move_ball(){
 	while(ball_state.y+BALL_HEIGHT + dy > YRES){
 		dy -= 1;
 	}
+
 	while(ball_state.y + dy < 0){
 		dy += 1;
 	}
 
+	while(ball_state.x+BALL_WIDTH + dx > XRES){
+		dx -= 1;
+	}
+
+	while(ball_state.x + dx < 0){
+		dx += 1;
+	}
+	
 	ball_state.x = piece_buffer[offset].x + dx;
 	ball_state.y = piece_buffer[offset].y + dy;
-	for(int i = offset; i < offset+BALL_SIZE; ++i){
+	for(uint8_t i = offset; i < offset+BALL_SIZE; ++i){
 		piece_buffer[i].x += dx;
 		piece_buffer[i].y += dy;
 	}
+
+	return PONG_NO_ERROR;
 }
 
-int pong_move_paddle(int piece, int y){
-	int offset;
-	int delta;
+uint8_t pong_move_paddle(uint8_t piece, uint8_t y){
+	uint8_t offset;
 	point_t* piece_buffer = draw_get_back_buffer(); 		
 
 	if(!IN_BOUNDS_Y(y) || !IN_BOUNDS_Y(y+PADDLE_HEIGHT)){ 
-		return 1;
+		return PONG_MOVE_ERROR;
 	}
 
 	switch(piece){
@@ -139,14 +148,13 @@ int pong_move_paddle(int piece, int y){
 			// error
 			return 1;
 	}
-
 	
-
-	for(int i = 0; i < PADDLE_WIDTH; ++i){
-		for(int j = 0; j < PADDLE_HEIGHT; ++j){
+	// TODO: OPTIMIZE?? memset or something?
+	for(uint8_t i = 0; i < PADDLE_WIDTH; ++i){
+		for(uint8_t j = 0; j < PADDLE_HEIGHT; ++j){
 			piece_buffer[offset+i*PADDLE_HEIGHT + j].y = y+j;
 		}
 	}
 	
-	return 0;
+	return PONG_NO_ERROR;
 }

@@ -3,7 +3,7 @@
 
 // Screen parameters
 // NOTE: both XRES and YRES
-#define XRES 	100
+#define XRES 	64
 #define YRES 	64
 #define BUFFER_MAX_POINTS ((XRES)*(YRES))
 
@@ -20,9 +20,8 @@ typedef struct {
 void draw_init(int num_points, point_t* data);
 
 point_t* draw_next_point();
-
 point_t* draw_get_back_buffer();
-
 void draw_swap_buffers();
+void draw_copy_buffers();
 
 #endif
