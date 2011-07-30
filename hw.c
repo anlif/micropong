@@ -10,43 +10,31 @@
 static uint16_t xlookup[XRES];
 static uint16_t ylookup[YRES];
 
-static bool move_flag = true;
-
 // Interrupt callbacks
 // painting interrupt
 ISR(TCE1_OVF_vect){
-	static bool t = true;
-	static point_t* current_point;
+	volatile static bool t = true;
+	volatile static point_t* current_point;
+	volatile static uint8_t x = 0;
+	volatile static uint8_t y = 0;
 
-	static uint8_t local_x = 0;
-	static uint8_t local_y = 0;
-
-	local_x = (local_x + 1) % 64;
-	local_y = (local_y + 1) % 64;
-
-	//LEDPORT.OUT = local_x;
-	//LEDPORT.OUTTGL = local_x;
-
-	/*
-	
 	if(t){
 		current_point = draw_next_point();
-		DACA.CH0DATA = xlookup[x];
-		LEDPORT.OUT = (xlookup[x]-XOFFSET) & 0xFF;
+		DACA.CH0DATA = xlookup[current_point->x];
 		t = false;
-	}
-	else{
-		DACA.CH1DATA = ylookup[y];
-		LEDPORT.OUT = (xlookup[x]-XOFFSET) & 0xFF;
+	}else{
+	
+		DACA.CH1DATA = ylookup[current_point->y];
+		y = (y+1)%64;
 		t = true;
 	}
-	*/
-
-	
 }
+
+static bool move_flag = true;
 
 // move timing
 ISR(TCE0_OVF_vect){
+	
 	move_flag = true;		
 	//LEDPORT.OUTTGL = 0xff;
 }
@@ -68,6 +56,7 @@ static void calc_lookup(){
 	for(int i = 0; i < YRES; ++i)
 		ylookup[i] = i*unit + YOFFSET;	
 }
+
 
 static void init_clock(){
 	// Oscillator setup, enable 32MHz clock
@@ -94,9 +83,9 @@ static void init_DAC(){
 
 static void init_timers(){
 	//Setup timer1: framebuffer output, with overflow interrupt.
-	TCE1.CTRLA = TC_CLKSEL_DIV1024_gc;
+	TCE1.CTRLA = TC_CLKSEL_DIV1_gc;
 	TCE1.INTCTRLA = (TCE1.INTCTRLA & ~TC1_OVFINTLVL_gm) | TC_OVFINTLVL_HI_gc;
-	TCE1.PER = 16000;
+	TCE1.PER = 0x100;
 
 
 	//Setup timer2: other stuff with overflow interrupt
