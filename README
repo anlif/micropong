@@ -1,0 +1,16 @@
+Micropong, a pong implementation for AVR microcontrollers.
+Assumes you have hooked your AVR to an oscilloscope with the X-Y mode on, and 
+your DACA output connected to the proper channels.
+
+How to compile:
+	make
+
+How to flash:
+	make flash
+
+In the test folder you will find a port to linux using SDL (also useful for debugging game logic).
+How to make the SDL port:
+	cd test/
+	make
+
+Made by alf

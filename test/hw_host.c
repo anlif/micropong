@@ -47,7 +47,8 @@ static void drawRect(SDL_Surface* surface, int x, int y, int width, int height, 
 	SDL_LockSurface( surface );
 	if( x >= surface->w || y >= surface->h || x < 0 || y < 0)
 	{
-		printf("Drawing outside surface in drawRect!\n");
+		printf("Drawing outside surface in drawRect! x:%i, y:%i, width:%i, height:%i\n", 
+		x, y, width, height);
 		exit(1);
 	}
 	// just be nice and resize rectangle if it's too big
@@ -100,16 +101,16 @@ void hw_draw(){
 	// clear screen to black
 	drawRect(screen, 0,0,XRES*SCALE_FACTOR,YRES*SCALE_FACTOR,0);
 
-	point_t first_point = draw_next_point();
-	hw_set_pixel(first_point);
+	point_t *first_point = draw_next_point();
+	hw_set_pixel(*first_point);
 	
-	if(print) printf("Point: {%i, %i}\n", first_point.x, first_point.y);
+	if(print) printf("Point: {%i, %i}\n", first_point->x, first_point->y);
 
-	point_t current_point = draw_next_point();
-	while(!(current_point.x == first_point.x && current_point.y == first_point.y)){
-		hw_set_pixel(current_point);
+	point_t *current_point = draw_next_point();
+	while(!(current_point->x == first_point->x && current_point->y == first_point->y)){
+		hw_set_pixel(*current_point);
 		current_point = draw_next_point();
-		if(print) printf("Point: {%i, %i}\n", current_point.x, current_point.y);
+		if(print) printf("Point: {%i, %i}\n", current_point->x, current_point->y);
 	}
 
 	print = 0;	
