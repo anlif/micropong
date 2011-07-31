@@ -23,7 +23,6 @@ int main(void){
 	while(1){
 		// flytte ting
 		// nei
-		
 	
 		cli();
 		draw_swap_buffers();	
@@ -43,10 +42,3 @@ ISR(TCE0_OVF_vect){
 	pong_move_ball();
 }
 
-ISR(ADCA_CH0_vect){
-	LEDPORT.OUTTGL = ADCA.CH0.RES;
-}
-
-ISR(ADCA_CH1_vect){
-
-}

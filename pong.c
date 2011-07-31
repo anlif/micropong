@@ -58,7 +58,7 @@ void pong_init(){
 	}
 	
 	for(uint8_t i = 0; i < LINE_SIZE; ++i){
-		points[LINE_OFFSET + i].x = XRES/2;
+		points[LINE_OFFSET + i].x = XRES/2 - 1;
 		points[LINE_OFFSET + i].y = (i/LINE_SEP_SIZE)*LINE_SEP_SIZE + i + LINE_SEP_SIZE/2;
 	}
 

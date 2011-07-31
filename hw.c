@@ -61,7 +61,10 @@ static void init_ADC(){
 	ADCA.CTRLB |= ADC_FREERUN_bm | ADC_RESOLUTION_8BIT_gc;
 	ADCA.REFCTRL |= ADC_REFSEL_VCC_gc; // default is internal 1.00V
 	ADCA.EVCTRL |= ADC_SWEEP_01_gc | ADC_EVSEL_4567_gc;
-	ADCA.PRESCALER |= ADC_PRESCALER_DIV512_gc;
+	ADCA.PRESCALER |= ADC_PRESCALER_DIV128_gc;
+
+	ADCA.CH0.CTRL |= ADC_CH_INPUTMODE_SINGLEENDED_gc | ADC_CH_MUXPOS_PIN4_gc | ADC_CH_GAIN_1X_gc;
+	ADCA.CH1.CTRL |= ADC_CH_INPUTMODE_SINGLEENDED_gc | ADC_CH_MUXPOS_PIN5_gc;
 	ADCA.CH0.INTCTRL |= ADC_CH_INTLVL_MED_gc;	
 	ADCA.CH1.INTCTRL |= ADC_CH_INTLVL_MED_gc;	
 }
@@ -95,14 +98,14 @@ void hw_init(){
 	LEDPORT.PIN0CTRL = PORT_INVEN_bm;
 	LEDPORT.OUT = 0x00;
 
-	
+	// Using porta7 as supply for pot-meters	
 	PORTA.DIR |= 1 << 7;
 	PORTA.OUT |= 1 << 7;
 	
 	calc_lookup();
 	init_clock();
 	init_DAC();	
-	init_ADC();
+	//init_ADC();
 	init_timers();
 	init_interrupts();
 }
