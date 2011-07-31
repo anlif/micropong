@@ -192,7 +192,7 @@ void pong_draw_score(uint8_t piece, uint8_t number)
 void pong_draw_number(point_t* buf, uint8_t number,
 		      uint8_t orig_x, uint8_t orig_y)
 {
-	int i, j;
+	uint8_t i;
 
 	switch (number) {
 	case 0:
@@ -347,10 +347,5 @@ void pong_draw_number(point_t* buf, uint8_t number,
 			buf[22+i].y = orig_y + 5 + i/6;
 		}
 		break;
-	}
-
-	for (i = 0; i < 34; i++) {
-		printf("num[%02d]: (%4d,%4d)\n",
-		       i, buf[i].x, buf[i].y);
 	}
 }
