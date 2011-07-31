@@ -7,8 +7,8 @@
 
 
 // Lookup table for DAC
-static uint16_t xlookup[XRES];
-static uint16_t ylookup[YRES];
+static uint16_t dac_lookup[XRES];
+//static uint16_t ylookup[YRES];
 
 static bool move_flag = true;
 
@@ -21,27 +21,26 @@ ISR(TCE1_OVF_vect){
 	static uint8_t local_x = 0;
 	static uint8_t local_y = 0;
 
-	local_x = (local_x + 1) % 64;
+	local_x = (local_x + 1) % 64; 
 	local_y = (local_y + 1) % 64;
 
 	//LEDPORT.OUT = local_x;
-	//LEDPORT.OUTTGL = local_x;
+	LEDPORT.OUTTGL = local_x;
 
 	/*
 	
 	if(t){
 		current_point = draw_next_point();
-		DACA.CH0DATA = xlookup[x];
-		LEDPORT.OUT = (xlookup[x]-XOFFSET) & 0xFF;
+		DACA.CH0DATA = dac_lookup[x];
+		LEDPORT.OUT = (dac_lookup[x]-XOFFSET) & 0xFF;
 		t = false;
 	}
 	else{
-		DACA.CH1DATA = ylookup[y];
-		LEDPORT.OUT = (xlookup[x]-XOFFSET) & 0xFF;
+		DACA.CH1DATA = dac_lookup[y];
+		LEDPORT.OUT = (dac_lookup[x]-XOFFSET) & 0xFF;
 		t = true;
 	}
 	*/
-
 	
 }
 
@@ -60,13 +59,11 @@ void hw_wait(){
 
 
 static void calc_lookup(){
-	// Calculate xlookup and ylookup
+	// Calculate lookup table for DAC, same used for X and Y
 	uint8_t unit = 32;
 
 	for(int i = 0; i < XRES; ++i)
-		xlookup[i] = i*unit + XOFFSET;	
-	for(int i = 0; i < YRES; ++i)
-		ylookup[i] = i*unit + YOFFSET;	
+		dac_lookup[i] = i*unit + XOFFSET;	
 }
 
 static void init_clock(){
