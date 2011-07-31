@@ -18,12 +18,9 @@ ISR(TCE1_OVF_vect){
 	volatile static uint8_t x = 0;
 	volatile static uint8_t y = 0;
 
-		current_point = draw_next_point();
-		DACA.CH0DATA = xlookup[current_point->x];
-		t = false;
-	
-		DACA.CH1DATA = ylookup[current_point->y];
-		t = true;
+	current_point = draw_next_point();
+	DACA.CH1DATA = ylookup[current_point->y];
+	DACA.CH0DATA = xlookup[current_point->x];
 }
 
 
@@ -62,6 +59,16 @@ static void init_DAC(){
 	DACA.TIMCTRL |= DAC_CONINTVAL_128CLK_gc | DAC_REFRESH_OFF_gc;
 }
 
+static void init_ADC(){
+	ADCA.CTRLA |= ADC_ENABLE_bm;
+	ADCA.CTRLB |= ADC_FREERUN_bm | ADC_RESOLUTION_8BIT_gc;
+	ADCA.REFCTRL |= ADC_REFSEL_VCC_gc; // default is internal 1.00V
+	ADCA.EVCTRL |= ADC_SWEEP_01_gc | ADC_EVSEL_4567_gc;
+	ADCA.PRESCALER |= ADC_PRESCALER_DIV512_gc;
+	ADCA.CH0.INTCTRL |= ADC_CH_INTLVL_MED_gc;	
+	ADCA.CH1.INTCTRL |= ADC_CH_INTLVL_MED_gc;	
+}
+
 static void init_timers(){
 	//Setup timer1: framebuffer output, with overflow interrupt.
 	TCE1.CTRLA = TC_CLKSEL_DIV1_gc;
@@ -94,6 +101,7 @@ void hw_init(){
 	calc_lookup();
 	init_clock();
 	init_DAC();	
+	init_ADC();
 	init_timers();
 	init_interrupts();
 }

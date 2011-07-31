@@ -42,3 +42,11 @@ TODO: implement win/lose logic
 ISR(TCE0_OVF_vect){
 	pong_move_ball();
 }
+
+ISR(ADCA_CH0_vect){
+	LEDPORT.OUTTGL = ADCA.CH0.RES;
+}
+
+ISR(ADCA_CH1_vect){
+
+}
