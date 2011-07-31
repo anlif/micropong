@@ -3,7 +3,7 @@
 
 // Screen parameters
 // NOTE: both XRES and YRES
-#define XRES 	64
+#define XRES 	128
 #define YRES 	64
 #define BUFFER_MAX_POINTS ((XRES)*(YRES))
 

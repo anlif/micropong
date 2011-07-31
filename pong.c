@@ -1,6 +1,5 @@
 #include "pong.h"
 #include "draw.h"
-#include <stdio.h>
 #include <stdint.h>
 
 static uint8_t paddle_left_state_y;
@@ -38,10 +37,10 @@ void pong_init(){
 			uint8_t y1 = paddle_left_origin.y + j;
 			uint8_t x2 = paddle_right_origin.x + i;
 			uint8_t y2 = paddle_right_origin.y + j;
-			points[i*PADDLE_HEIGHT+j].x = x1;
-			points[i*PADDLE_HEIGHT+j].y = y1;
-			points[i*PADDLE_HEIGHT+j + PADDLE_SIZE].x = x2;
-			points[i*PADDLE_HEIGHT+j + PADDLE_SIZE].y = y2;
+			points[PADDLE_LEFT_OFFSET + i*PADDLE_HEIGHT+j].x = x1;
+			points[PADDLE_LEFT_OFFSET + i*PADDLE_HEIGHT+j].y = y1;
+			points[PADDLE_RIGHT_OFFSET + i*PADDLE_HEIGHT+j].x = x2;
+			points[PADDLE_RIGHT_OFFSET + i*PADDLE_HEIGHT+j].y = y2;
 		}
 	}
 
@@ -49,9 +48,14 @@ void pong_init(){
 		for(uint8_t j = 0; j < BALL_HEIGHT; j++){
 			uint8_t x = ball_origin.x + i;
 			uint8_t y = ball_origin.y + j;
-			points[2*PADDLE_SIZE + i*BALL_HEIGHT + j].x = x;
-			points[2*PADDLE_SIZE + i*BALL_HEIGHT + j].y = y;
+			points[BALL_OFFSET + i*BALL_HEIGHT + j].x = x;
+			points[BALL_OFFSET + i*BALL_HEIGHT + j].y = y;
 		}
+	}
+	
+	for(uint8_t i = 0; i < LINE_SIZE; ++i){
+		points[LINE_OFFSET + i].x = XRES/2;
+		points[LINE_OFFSET + i].y = (i/LINE_SEP_SIZE)*LINE_SEP_SIZE + i + LINE_SEP_SIZE/2;
 	}
 
 	draw_init(PONG_BUFFER_SIZE,  points);
@@ -131,7 +135,7 @@ uint8_t pong_move_paddle(uint8_t piece, uint8_t y){
 	uint8_t offset;
 	point_t* piece_buffer = draw_get_back_buffer(); 		
 
-	if(!IN_BOUNDS_Y(y) || !IN_BOUNDS_Y(y+PADDLE_HEIGHT)){ 
+	if(!IN_BOUNDS_Y(y) || !IN_BOUNDS_Y(y+PADDLE_HEIGHT-2)){ 
 		return PONG_MOVE_ERROR;
 	}
 
@@ -146,10 +150,10 @@ uint8_t pong_move_paddle(uint8_t piece, uint8_t y){
 			break;
 		default:
 			// error
-			return 1;
+			return PONG_ERROR;
 	}
 	
-	// TODO: OPTIMIZE?? memset or something?
+	// TODO: OPTIMIZE?? memset or something? move both paddles at the same time?
 	for(uint8_t i = 0; i < PADDLE_WIDTH; ++i){
 		for(uint8_t j = 0; j < PADDLE_HEIGHT; ++j){
 			piece_buffer[offset+i*PADDLE_HEIGHT + j].y = y+j;
