@@ -26,11 +26,19 @@ int main(void){
 		
 		//hw_wait(); // waits for next move interrupt (timing)
 		
-		//cli();
-		//draw_copy_buffers();
-		//draw_swap_buffers();	
-		//sei();
+		cli();
+		draw_swap_buffers();	
+		draw_copy_buffers();
+		sei();
 	}
 }
 
 
+static bool move_flag = false;
+/*
+ move timing, ~20fps (NB: also controls ball move speed)
+TODO: implement win/lose logic
+*/
+ISR(TCE0_OVF_vect){
+	pong_move_ball();
+}

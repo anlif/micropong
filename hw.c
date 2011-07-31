@@ -7,8 +7,8 @@
 
 
 // Lookup table for DAC
-static uint16_t dac_lookup[XRES];
-//static uint16_t ylookup[YRES];
+static uint16_t xlookup[XRES];
+static uint16_t ylookup[YRES];
 
 // Interrupt callbacks
 // painting interrupt
@@ -18,41 +18,24 @@ ISR(TCE1_OVF_vect){
 	volatile static uint8_t x = 0;
 	volatile static uint8_t y = 0;
 
-	if(t){
 		current_point = draw_next_point();
 		DACA.CH0DATA = xlookup[current_point->x];
 		t = false;
-	}else{
 	
 		DACA.CH1DATA = ylookup[current_point->y];
-		y = (y+1)%64;
 		t = true;
-	}
 }
 
-static bool move_flag = true;
-
-// move timing
-ISR(TCE0_OVF_vect){
-	
-	move_flag = true;		
-	//LEDPORT.OUTTGL = 0xff;
-}
-
-void hw_wait(){
-	while(!move_flag){
-		/* do nothing */
-	}
-	move_flag = false;
-}
 
 
 static void calc_lookup(){
 	// Calculate lookup table for DAC, same used for X and Y
-	uint8_t unit = 32;
+	uint8_t unit = 16;
 
-	for(int i = 0; i < XRES; ++i)
-		dac_lookup[i] = i*unit + XOFFSET;	
+	for(uint8_t i = 0; i < XRES; ++i)
+		xlookup[i] = i*unit + XOFFSET;	
+	for(uint8_t i = 0; i < YRES; ++i)
+		ylookup[i] = i*unit + XOFFSET;
 }
 
 
@@ -82,14 +65,14 @@ static void init_DAC(){
 static void init_timers(){
 	//Setup timer1: framebuffer output, with overflow interrupt.
 	TCE1.CTRLA = TC_CLKSEL_DIV1_gc;
-	TCE1.INTCTRLA = (TCE1.INTCTRLA & ~TC1_OVFINTLVL_gm) | TC_OVFINTLVL_HI_gc;
-	TCE1.PER = 0x100;
+	TCE1.INTCTRLA = (TCE1.INTCTRLA & ~TC1_OVFINTLVL_gm) | TC_OVFINTLVL_MED_gc;
+	TCE1.PER = 0x200;
 
 
 	//Setup timer2: other stuff with overflow interrupt
 	TCE0.CTRLA = TC_CLKSEL_DIV1024_gc;
-	TCE0.INTCTRLA = (TCE0.INTCTRLA & ~TC1_OVFINTLVL_gm) | TC_OVFINTLVL_MED_gc;
-	TCE0.PER = 0x28B0;
+	TCE0.INTCTRLA = (TCE0.INTCTRLA & ~TC1_OVFINTLVL_gm) | TC_OVFINTLVL_HI_gc;
+	TCE0.PER = 0x61a;
 }
 
 static void init_interrupts(){

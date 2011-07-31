@@ -17,5 +17,4 @@
 #define DACMAX 0xFFF // 12 bit
 
 void hw_init();
-void hw_wait();
 #endif
