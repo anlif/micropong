@@ -24,8 +24,7 @@ int main(void){
 		// flytte ting
 		// nei
 		
-		//hw_wait(); // waits for next move interrupt (timing)
-		
+	
 		cli();
 		draw_swap_buffers();	
 		draw_copy_buffers();
@@ -35,6 +34,7 @@ int main(void){
 
 
 static bool move_flag = false;
+
 /*
  move timing, ~20fps (NB: also controls ball move speed)
 TODO: implement win/lose logic

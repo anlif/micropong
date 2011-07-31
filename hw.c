@@ -13,17 +13,11 @@ static uint16_t ylookup[YRES];
 // Interrupt callbacks
 // painting interrupt
 ISR(TCE1_OVF_vect){
-	volatile static bool t = true;
 	volatile static point_t* current_point;
-	volatile static uint8_t x = 0;
-	volatile static uint8_t y = 0;
-
-		current_point = draw_next_point();
-		DACA.CH0DATA = xlookup[current_point->x];
-		t = false;
 	
-		DACA.CH1DATA = ylookup[current_point->y];
-		t = true;
+	current_point = draw_next_point();
+	DACA.CH0DATA = xlookup[current_point->x];
+	DACA.CH1DATA = ylookup[current_point->y];
 }
 
 
@@ -90,6 +84,10 @@ void hw_init(){
 	PORTCFG.MPCMASK = 0xFF;
 	LEDPORT.PIN0CTRL = PORT_INVEN_bm;
 	LEDPORT.OUT = 0x00;
+
+	
+	PORTA.DIR |= 1 << 7;
+	PORTA.OUT |= 1 << 7;
 	
 	calc_lookup();
 	init_clock();
