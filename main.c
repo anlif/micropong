@@ -12,17 +12,12 @@
 
 static void init(){
 	hw_init();
-	//pong_init();
-
-
-	LEDPORT.OUT = OSC.CTRL;
-	
+	pong_init();
 }
 
 
 int main(void){
 	init();
-	LEDPORT.OUTTGL = 0xff;
 
 	// Ultimate loop
 	while(1){

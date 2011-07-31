@@ -9,6 +9,8 @@ drawbuffer_t *back_buffer;
 void draw_init(int points, point_t* data){
 	buffer1.num_points = points;
 	buffer2.num_points = points;
+	buffer1.buffer = (point_t*)malloc(points*sizeof(point_t));
+	buffer2.buffer = (point_t*)malloc(points*sizeof(point_t));
 	memcpy(buffer1.buffer, data, points*sizeof(point_t));
 	memcpy(buffer2.buffer, data, points*sizeof(point_t));
 	read_buffer = &buffer1;
