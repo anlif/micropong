@@ -47,7 +47,8 @@ static void drawRect(SDL_Surface* surface, int x, int y, int width, int height, 
 	SDL_LockSurface( surface );
 	if( x >= surface->w || y >= surface->h || x < 0 || y < 0)
 	{
-		printf("Drawing outside surface in drawRect!\n");
+		printf("Drawing outside surface in drawRect! x:%i, y:%i, width:%i, height:%i\n", 
+		x, y, width, height);
 		exit(1);
 	}
 	// just be nice and resize rectangle if it's too big
