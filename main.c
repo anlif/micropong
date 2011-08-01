@@ -24,6 +24,7 @@ int main(void){
 		// flytte ting
 		// nei
 	
+		//LEDPORT.OUT = ADCA.CH0.RESL;
 		cli();
 		draw_swap_buffers();	
 		draw_copy_buffers();
@@ -40,5 +41,10 @@ TODO: implement win/lose logic
 */
 ISR(TCE0_OVF_vect){
 	pong_move_ball();
+	LEDPORT.OUT = ADCA.CH1.RES >> 6;
+}
+
+ISR(ADCA_CH0_vect){
+	
 }
 
