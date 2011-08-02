@@ -10,6 +10,21 @@
 static uint16_t xlookup[XRES];
 static uint16_t ylookup[YRES];
 
+static uint16_t ADCA_CH0_min;
+static uint16_t ADCA_CH1_min;
+
+
+uint16_t hw_get_ADC_min_shifted(uint8_t ADC, uint8_t shift){
+	switch(ADC){
+		case HW_ADC_0:
+			return ADCA_CH0_min >> shift;
+		case HW_ADC_1:
+			return ADCA_CH1_min >> shift;
+		default:
+			return HW_ERROR;
+	}
+}
+
 // Interrupt callbacks
 // painting interrupt
 ISR(TCE1_OVF_vect){
@@ -67,6 +82,18 @@ static void init_ADC(){
 	ADCA.CH0.MUXCTRL |= ADC_CH_MUXPOS_PIN4_gc;
 	ADCA.CH1.CTRL |= ADC_CH_INPUTMODE_SINGLEENDED_gc;
 	ADCA.CH1.MUXCTRL |= ADC_CH_MUXPOS_PIN5_gc;
+
+	uint16_t ADCA_CH0_min = 0xFF;
+	uint16_t ADCA_CH1_min = 0xFF;
+
+	for(uint16_t i = 0; i < 10000; i++){
+		for(uint16_t i = 0; i < 65000; i++){
+		}
+		LEDPORT.OUTTGL = 0xff;
+		ADCA_CH0_min = ADCA.CH0.RES < ADCA_CH0_min? ADCA.CH0.RES : ADCA_CH0_min;
+		ADCA_CH1_min = ADCA.CH1.RES < ADCA_CH1_min? ADCA.CH1.RES : ADCA_CH1_min;
+		LEDPORT.OUT = ADCA_CH0_min;
+	}
 }
 
 static void init_timers(){

@@ -16,5 +16,12 @@
 #define YOFFSET 0x300
 #define DACMAX 0xFFF // 12 bit
 
+enum{
+	HW_ADC_0,
+	HW_ADC_1,
+	HW_ERROR
+};
+
 void hw_init();
+uint16_t hw_get_ADC_min_shifted(uint8_t ADC, uint8_t shift);
 #endif
