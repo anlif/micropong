@@ -1,6 +1,7 @@
 #include "pong.h"
 #include "draw.h"
 #include <stdint.h>
+#include <stdio.h>
 
 static uint8_t paddle_left_state_y;
 static uint8_t paddle_right_state_y;
@@ -18,6 +19,8 @@ uint8_t pong_get_paddle_state(uint8_t piece){
 }
 
 void pong_init(){
+	static int first_run = 1;
+
 	point_t paddle_left_origin = {PADDLE_LEFT_X,
 					YRES/2 - PADDLE_HEIGHT/2};
 	paddle_left_state_y = paddle_left_origin.y;
@@ -58,10 +61,49 @@ void pong_init(){
 		points[LINE_OFFSET + i].y = (i/LINE_SEP_SIZE)*LINE_SEP_SIZE + i + LINE_SEP_SIZE/2;
 	}
 
-	draw_init(PONG_BUFFER_SIZE,  points);
+	if(first_run) {
+		draw_init(PONG_BUFFER_SIZE,  points);
+		first_run = 0;
+	}
 }
 
-// Returns 
+void pong_restart(){
+	pong_init();
+}
+
+uint8_t pong_add_point( uint8_t paddle ){
+}
+
+#define CLAMP_X( x ) ( (x > XRES)? (XRES - 3) : ((x < 0)? 3 : x) )
+#define CLAMP_Y( y ) ( (y > YRES)? (YRES - 3) : ((y < 0)? 3 : y) )
+#define PADDLE_IDLE_FUNCTION( p1_x, p1_y, p2_x, p2_y ) { ((XRES/2 - p1_x)/4 + ((p2_x - p1_x)/4)),  \
+							 ((YRES/2 - p1_y)/4 + ((p1_y - p2_y))) }	
+
+void pong_idle(){
+	point_t *points = draw_get_back_buffer();
+		
+	for(uint8_t i = 0; i < PADDLE_WIDTH; ++i){
+		for(uint8_t j = 0; j < PADDLE_HEIGHT; ++j){
+			point_t p_left_delta = PADDLE_IDLE_FUNCTION(
+				points[PADDLE_LEFT_OFFSET + i*PADDLE_WIDTH + j].x, 
+				points[PADDLE_LEFT_OFFSET + i*PADDLE_WIDTH + j].y,
+				points[PADDLE_RIGHT_OFFSET + i*PADDLE_WIDTH + j].x, 
+				points[PADDLE_RIGHT_OFFSET + i*PADDLE_WIDTH + j].y);
+			point_t p_right_delta = { -p_left_delta.x, p_left_delta.y };
+			printf("Delta: \{ %i, %i \}", p_left_delta.x, p_left_delta.y);
+			
+			points[PADDLE_LEFT_OFFSET + i*PADDLE_WIDTH + j].x =
+				CLAMP_X(points[PADDLE_LEFT_OFFSET + i*PADDLE_WIDTH + j].x + p_left_delta.x);
+			points[PADDLE_LEFT_OFFSET + i*PADDLE_WIDTH].y =
+				CLAMP_Y(points[PADDLE_LEFT_OFFSET + i*PADDLE_WIDTH + j].y + p_left_delta.y);
+			points[PADDLE_RIGHT_OFFSET + i*PADDLE_WIDTH + j].x = 
+				CLAMP_X(points[PADDLE_RIGHT_OFFSET + i*PADDLE_WIDTH + j].x + p_right_delta.x);
+			points[PADDLE_RIGHT_OFFSET + i*PADDLE_WIDTH + j].y = 
+				CLAMP_Y(points[PADDLE_RIGHT_OFFSET + i*PADDLE_WIDTH + j].y + p_right_delta.y);
+		}
+	}
+}
+
 uint8_t pong_move_ball(){
 	static int8_t dx = 1;
 	static int8_t dy = 0;
@@ -79,6 +121,7 @@ uint8_t pong_move_ball(){
 			++hits;
 		}
 		else{
+			dx = -1;
 			return PONG_WIN_RIGHT;
 		}
 		dy = (dy+MAGIC_DY_FUNCTION( ball_state.y, paddle_left_state_y ) & DY_MAX);
@@ -91,6 +134,7 @@ uint8_t pong_move_ball(){
 			++hits;
 		}
 		else{
+			dx = 1;
 			return PONG_WIN_LEFT;
 		}
 		dy = ((dy+MAGIC_DY_FUNCTION(ball_state.y, paddle_right_state_y)) & DY_MAX);
@@ -134,7 +178,8 @@ uint8_t pong_move_ball(){
 uint8_t pong_move_paddle(uint8_t piece, uint8_t y){
 	uint8_t offset;
 	point_t* piece_buffer = draw_get_back_buffer(); 		
-
+	
+	// FIXME: Why do I need - 2 here????
 	if(!IN_BOUNDS_Y(y) || !IN_BOUNDS_Y(y+PADDLE_HEIGHT-2)){ 
 		return PONG_MOVE_ERROR;
 	}

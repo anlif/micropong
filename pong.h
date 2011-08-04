@@ -42,12 +42,14 @@
 
 enum {
 	PONG_NO_ERROR = 0,
+	PONG_ERROR,
 	PONG_PADDLE_LEFT,
 	PONG_PADDLE_RIGHT,
 	PONG_BALL,
 	PONG_WIN_LEFT,
 	PONG_WIN_RIGHT,
-	PONG_MOVE_ERROR
+	PONG_MOVE_ERROR,
+	PONG_GAME_OVER
 };
 
 void pong_init();
@@ -56,6 +58,8 @@ void pong_init();
 uint8_t pong_move_paddle(uint8_t piece, uint8_t y);
 uint8_t pong_get_paddle_state(uint8_t piece);
 uint8_t pong_move_ball();
-void pong_restart(uint8_t last_winner);
+uint8_t pong_add_point( uint8_t paddle );
+void pong_restart();
+void pong_idle();
 
 #endif
