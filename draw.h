@@ -1,6 +1,8 @@
 #ifndef DRAW_H
 #define DRAW_H
 
+#include <stdint.h>
+
 // Screen parameters
 // NOTE: both XRES and YRES
 #define XRES 	128
@@ -8,12 +10,12 @@
 #define BUFFER_MAX_POINTS ((XRES)*(YRES))
 
 typedef struct {
-	int x;
-	int y;
+	uint8_t x;
+	uint8_t y;
 } point_t;
 
 typedef struct {
-	point_t buffer[BUFFER_MAX_POINTS];
+	point_t *buffer;
 	int num_points;
 } drawbuffer_t;
 

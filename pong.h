@@ -13,11 +13,6 @@
 #define PADDLE_LEFT_X PADDLE_SPACING 
 #define PADDLE_RIGHT_X ((XRES) - (PADDLE_WIDTH) - (PADDLE_SPACING))
 
-#define PADDLE_LEFT_OFFSET 0
-#define PADDLE_RIGHT_OFFSET PADDLE_SIZE
-#define BALL_OFFSET (PADDLE_RIGHT_OFFSET)+(PADDLE_SIZE)
-#define LINE_OFFSET (BALL_OFFSET)+(BALL_SIZE)
-
 #define BALL_WIDTH 2
 #define BALL_HEIGHT 2
 #define BALL_SIZE ((BALL_WIDTH)*(BALL_HEIGHT)) 
@@ -27,7 +22,22 @@
 #define LINE_PARTS ((YRES)/(LINE_SEP_SIZE))/2
 #define LINE_SIZE ((LINE_SEP_SIZE)*(LINE_PARTS)*(LINE_WIDTH))
 
-#define PONG_BUFFER_SIZE ((2*(PADDLE_SIZE)) + (BALL_SIZE) + (LINE_SIZE))
+#define NUMBER_SIZE 34
+#define NUMBER_WIDTH 7
+#define NUMBER_HEIGHT 7
+
+#define NUMBER1_X 55
+#define NUMBER2_X 66
+#define NUMBER_Y 2
+
+#define PADDLE_LEFT_OFFSET 0
+#define PADDLE_RIGHT_OFFSET PADDLE_SIZE
+#define BALL_OFFSET ((PADDLE_RIGHT_OFFSET)+(PADDLE_SIZE))
+#define LINE_OFFSET ((BALL_OFFSET)+(BALL_SIZE))
+#define NUMBER1_OFFSET ((LINE_OFFSET)+(LINE_SIZE))
+#define NUMBER2_OFFSET ((NUMBER1_OFFSET)+(NUMBER_SIZE))
+
+#define PONG_BUFFER_SIZE ((2*(PADDLE_SIZE)) + (BALL_SIZE) + (LINE_SIZE) + 2*(NUMBER_SIZE))
 
 #define IN_BOUNDS_X( x ) (( x >= 0) && (x < (XRES)))
 #define IN_BOUNDS_Y( y ) (( y >= 0) && (y < (YRES)))
@@ -61,5 +71,8 @@ uint8_t pong_move_ball();
 uint8_t pong_add_point( uint8_t paddle );
 void pong_restart();
 void pong_idle();
+void pong_draw_score(uint8_t piece, uint8_t number);
+void pong_draw_number(point_t* buf, uint8_t number,
+		      uint8_t orig_x, uint8_t orig_y);
 
 #endif

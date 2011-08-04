@@ -10,64 +10,43 @@
 static uint16_t xlookup[XRES];
 static uint16_t ylookup[YRES];
 
-static bool move_flag = true;
+static uint16_t ADCA_CH0_min;
+static uint16_t ADCA_CH1_min;
+
+
+uint16_t hw_get_ADC_min_shifted(uint8_t ADC, uint8_t shift){
+	switch(ADC){
+		case HW_ADC_0:
+			return ADCA_CH0_min >> shift;
+		case HW_ADC_1:
+			return ADCA_CH1_min >> shift;
+		default:
+			return HW_ERROR;
+	}
+}
 
 // Interrupt callbacks
 // painting interrupt
 ISR(TCE1_OVF_vect){
-	static bool t = true;
-	static point_t* current_point;
-
-	static uint8_t local_x = 0;
-	static uint8_t local_y = 0;
-
-	local_x = (local_x + 1) % 64;
-	local_y = (local_y + 1) % 64;
-
-	//LEDPORT.OUT = local_x;
-	//LEDPORT.OUTTGL = local_x;
-
-	/*
+	volatile static point_t* current_point;
 	
-	if(t){
-		current_point = draw_next_point();
-		DACA.CH0DATA = xlookup[x];
-		LEDPORT.OUT = (xlookup[x]-XOFFSET) & 0xFF;
-		t = false;
-	}
-	else{
-		DACA.CH1DATA = ylookup[y];
-		LEDPORT.OUT = (xlookup[x]-XOFFSET) & 0xFF;
-		t = true;
-	}
-	*/
-
-	
+	current_point = draw_next_point();
+	DACA.CH0DATA = xlookup[current_point->x];
+	DACA.CH1DATA = ylookup[current_point->y];
 }
 
-// move timing
-ISR(TCE0_OVF_vect){
-	move_flag = true;		
-	//LEDPORT.OUTTGL = 0xff;
-}
-
-void hw_wait(){
-	while(!move_flag){
-		/* do nothing */
-	}
-	move_flag = false;
-}
 
 
 static void calc_lookup(){
-	// Calculate xlookup and ylookup
-	uint8_t unit = 32;
+	// Calculate lookup table for DAC, same used for X and Y
+	uint8_t unit = 16;
 
-	for(int i = 0; i < XRES; ++i)
+	for(uint8_t i = 0; i < XRES; ++i)
 		xlookup[i] = i*unit + XOFFSET;	
-	for(int i = 0; i < YRES; ++i)
-		ylookup[i] = i*unit + YOFFSET;	
+	for(uint8_t i = 0; i < YRES; ++i)
+		ylookup[i] = i*unit + XOFFSET;
 }
+
 
 static void init_clock(){
 	// Oscillator setup, enable 32MHz clock
@@ -92,17 +71,42 @@ static void init_DAC(){
 	DACA.TIMCTRL |= DAC_CONINTVAL_128CLK_gc | DAC_REFRESH_OFF_gc;
 }
 
+static void init_ADC(){
+	ADCA.CTRLA |= ADC_ENABLE_bm;
+	ADCA.CTRLB |= ADC_FREERUN_bm | ADC_RESOLUTION_12BIT_gc;
+	ADCA.REFCTRL |= ADC_REFSEL_VCC_gc; // default is internal 1.00V
+	ADCA.EVCTRL |= ADC_SWEEP_01_gc | ADC_EVSEL_4567_gc;
+	ADCA.PRESCALER |= ADC_PRESCALER_DIV512_gc;
+
+	ADCA.CH0.CTRL |= ADC_CH_INPUTMODE_SINGLEENDED_gc;
+	ADCA.CH0.MUXCTRL |= ADC_CH_MUXPOS_PIN4_gc;
+	ADCA.CH1.CTRL |= ADC_CH_INPUTMODE_SINGLEENDED_gc;
+	ADCA.CH1.MUXCTRL |= ADC_CH_MUXPOS_PIN5_gc;
+
+	uint16_t ADCA_CH0_min = 0xFF;
+	uint16_t ADCA_CH1_min = 0xFF;
+
+	for(uint16_t i = 0; i < 10000; i++){
+		for(uint16_t i = 0; i < 65000; i++){
+		}
+		LEDPORT.OUTTGL = 0xff;
+		ADCA_CH0_min = ADCA.CH0.RES < ADCA_CH0_min? ADCA.CH0.RES : ADCA_CH0_min;
+		ADCA_CH1_min = ADCA.CH1.RES < ADCA_CH1_min? ADCA.CH1.RES : ADCA_CH1_min;
+		LEDPORT.OUT = ADCA_CH0_min;
+	}
+}
+
 static void init_timers(){
 	//Setup timer1: framebuffer output, with overflow interrupt.
-	TCE1.CTRLA = TC_CLKSEL_DIV1024_gc;
-	TCE1.INTCTRLA = (TCE1.INTCTRLA & ~TC1_OVFINTLVL_gm) | TC_OVFINTLVL_HI_gc;
-	TCE1.PER = 16000;
+	TCE1.CTRLA = TC_CLKSEL_DIV1_gc;
+	TCE1.INTCTRLA = (TCE1.INTCTRLA & ~TC1_OVFINTLVL_gm) | TC_OVFINTLVL_MED_gc;
+	TCE1.PER = 0x200;
 
 
 	//Setup timer2: other stuff with overflow interrupt
 	TCE0.CTRLA = TC_CLKSEL_DIV1024_gc;
-	TCE0.INTCTRLA = (TCE0.INTCTRLA & ~TC1_OVFINTLVL_gm) | TC_OVFINTLVL_MED_gc;
-	TCE0.PER = 0x28B0;
+	TCE0.INTCTRLA = (TCE0.INTCTRLA & ~TC1_OVFINTLVL_gm) | TC_OVFINTLVL_HI_gc;
+	TCE0.PER = 0x61a;
 }
 
 static void init_interrupts(){
@@ -120,10 +124,15 @@ void hw_init(){
 	PORTCFG.MPCMASK = 0xFF;
 	LEDPORT.PIN0CTRL = PORT_INVEN_bm;
 	LEDPORT.OUT = 0x00;
+
+	// Using porta7 as supply for pot-meters	
+	PORTA.DIR |= 1 << 7;
+	PORTA.OUT |= 1 << 7;
 	
 	calc_lookup();
 	init_clock();
 	init_DAC();	
+	init_ADC();
 	init_timers();
 	init_interrupts();
 }
