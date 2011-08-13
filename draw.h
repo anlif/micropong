@@ -15,6 +15,11 @@ typedef struct {
 } point_t;
 
 typedef struct {
+	int8_t x;
+	int8_t y;
+} delta_t;
+
+typedef struct {
 	point_t *buffer;
 	int num_points;
 } drawbuffer_t;

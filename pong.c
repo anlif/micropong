@@ -82,32 +82,35 @@ void pong_restart(){
 uint8_t pong_add_point( uint8_t paddle ){
 }
 
-#define CLAMP_X( x ) ( (x > XRES)? (XRES - 3) : ((x < 0)? 3 : x) )
-#define CLAMP_Y( y ) ( (y > YRES)? (YRES - 3) : ((y < 0)? 3 : y) )
-#define PADDLE_IDLE_FUNCTION( p1_x, p1_y, p2_x, p2_y ) { ((XRES/2 - p1_x)/4 + ((p2_x - p1_x)/4)),  \
-							 ((YRES/2 - p1_y)/4 + ((p1_y - p2_y))) }	
+#define SCALE_DOWN 4
+#define ABS( x ) ( x < 0? -x : x )
+#define CLAMP_X( x ) ( (x >= XRES)? (XRES - 3) : ((x < 0)? 3 : x) )
+#define CLAMP_Y( y ) ( (y >= YRES)? (YRES - 3) : ((y < 0)? 3 : y) )
+
+#define PADDLE_IDLE_FUNCTION( p1_x, p1_y, p2_x, p2_y ) \
+	{ ((XRES/2 - p1_x)/8) + ( ABS( p1_x - p2_x ) < 4 ? p2_y/8 : 0 ), \
+	 ( ((YRES/2 - p1_y)/8) + ( ABS( p1_x - p2_x ) < 4 ? p2_x/8 : 0) )}
+
+
+#define PADDLE_IDLE_FUNCTION2( p1_x, p1_y ) { (p1_x + (XRES/2 - p1_x)%3) , (p1_y + (YRES/2 - p1_y)%3) }
 
 void pong_idle(){
+	static point_t orb = {XRES/2, YRES/2};
+	
 	point_t *points = draw_get_back_buffer();
-		
+
 	for(uint8_t i = 0; i < PADDLE_WIDTH; ++i){
 		for(uint8_t j = 0; j < PADDLE_HEIGHT; ++j){
-			point_t p_left_delta = PADDLE_IDLE_FUNCTION(
-				points[PADDLE_LEFT_OFFSET + i*PADDLE_WIDTH + j].x, 
-				points[PADDLE_LEFT_OFFSET + i*PADDLE_WIDTH + j].y,
-				points[PADDLE_RIGHT_OFFSET + i*PADDLE_WIDTH + j].x, 
-				points[PADDLE_RIGHT_OFFSET + i*PADDLE_WIDTH + j].y);
-			point_t p_right_delta = { -p_left_delta.x, p_left_delta.y };
-			printf("Delta: \{ %i, %i \}", p_left_delta.x, p_left_delta.y);
+			uint8_t l_offs = PADDLE_LEFT_OFFSET + i*PADDLE_HEIGHT + j;
+			uint8_t r_offs = PADDLE_RIGHT_OFFSET + i*PADDLE_HEIGHT + j;
 			
-			points[PADDLE_LEFT_OFFSET + i*PADDLE_WIDTH + j].x =
-				CLAMP_X(points[PADDLE_LEFT_OFFSET + i*PADDLE_WIDTH + j].x + p_left_delta.x);
-			points[PADDLE_LEFT_OFFSET + i*PADDLE_WIDTH].y =
-				CLAMP_Y(points[PADDLE_LEFT_OFFSET + i*PADDLE_WIDTH + j].y + p_left_delta.y);
-			points[PADDLE_RIGHT_OFFSET + i*PADDLE_WIDTH + j].x = 
-				CLAMP_X(points[PADDLE_RIGHT_OFFSET + i*PADDLE_WIDTH + j].x + p_right_delta.x);
-			points[PADDLE_RIGHT_OFFSET + i*PADDLE_WIDTH + j].y = 
-				CLAMP_Y(points[PADDLE_RIGHT_OFFSET + i*PADDLE_WIDTH + j].y + p_right_delta.y);
+			delta_t d_l = { (XRES/2 - points[l_offs].x)/8, (YRES/2 - points[l_offs].y)/8 };
+			delta_t d_r = { (XRES/2 - points[r_offs].x)/8, (YRES/2 - points[r_offs].y)/8 };
+
+			points[l_offs].x = CLAMP_X(points[l_offs].x + d_l.x);	
+			points[l_offs].y = CLAMP_Y(points[l_offs].y + d_l.y);	
+			points[r_offs].x = CLAMP_X(points[r_offs].x + d_r.x);	
+			points[r_offs].y = CLAMP_Y(points[r_offs].y + d_r.y);	
 		}
 	}
 }
