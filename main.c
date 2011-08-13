@@ -9,11 +9,7 @@
 #include "pong.h"
 #include "hw.h"
 
-/* Takes in an ADC value, and returns a pong paddle y coordinate */
-static uint8_t get_paddle_y( uint8_t inp ){
-		
-
-}
+static bool restart = false;
 
 static void init(){
 	pong_init();
@@ -31,6 +27,10 @@ int main(void){
 	
 		//LEDPORT.OUT = ADCA.CH0.RESL;
 		cli();
+		if(restart){
+			pong_restart();
+			restart = false;
+		}
 		draw_swap_buffers();	
 		draw_copy_buffers();
 		sei();
@@ -49,15 +49,14 @@ ISR(TCE0_OVF_vect){
 	static uint8_t paddle_right_y = 0;
 	static uint8_t status = PONG_NO_ERROR;
 	
-	paddle_left_y = ADCA.CH0.RES >> 5 - hw_get_ADC_min_shifted( HW_ADC_0, 5 );
-	paddle_right_y = ADCA.CH1.RES >> 5 - hw_get_ADC_min_shifted( HW_ADC_1, 5 );
+	paddle_left_y = ADCA.CH0.RES >> 5;// - hw_get_ADC_min_shifted( HW_ADC_0, 5 );
+	paddle_right_y = ADCA.CH1.RES >> 5;// - hw_get_ADC_min_shifted( HW_ADC_1, 5 );
+	pong_move_paddle(PONG_PADDLE_LEFT, paddle_left_y);
+	pong_move_paddle(PONG_PADDLE_RIGHT, paddle_right_y);
 	
 	status = pong_move_ball();
 	if( PONG_NO_ERROR != status ){
-		pong_restart();	
+		restart = true;
 	}
-	pong_move_paddle(PONG_PADDLE_LEFT, paddle_left_y);
-	pong_move_paddle(PONG_PADDLE_RIGHT, paddle_right_y);
-
 }
 

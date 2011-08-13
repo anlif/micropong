@@ -46,8 +46,17 @@ void pong_init(){
 	ball_state.pos.y = ball_origin.y;
 	ball_state.dx = -1; 
 	ball_state.dy = 0;
+	
+	point_t *points;
+	if(first_run)
+	{
+		points = (point_t*)malloc(PONG_BUFFER_SIZE*sizeof(point_t));
+	}
+	else
+	{
+		points = draw_get_back_buffer();
+	}
 
-	point_t points[PONG_BUFFER_SIZE];
 	for (uint8_t i = 0; i < PONG_BUFFER_SIZE; i++) {
 		points[i].x = 0;
 		points[i].y = 0;
@@ -78,6 +87,7 @@ void pong_init(){
 
 	if(first_run) {
 		draw_init(PONG_BUFFER_SIZE,  points);
+		free(points);
 		first_run = 0;
 	}
 	
@@ -89,7 +99,7 @@ void pong_restart(){
 	pong_init();
 }
 
-uint8_t pong_handle_score( uint8_t paddle ){
+static uint8_t pong_handle_score( uint8_t paddle ){
 	score[paddle]++;
 	if(score[paddle] > 9){
 		return paddle == PONG_PADDLE_RIGHT ? PONG_WIN_RIGHT : PONG_WIN_LEFT;

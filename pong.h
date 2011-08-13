@@ -42,8 +42,7 @@
 #define IN_BOUNDS_X( x ) (( x >= 0) && (x < (XRES)))
 #define IN_BOUNDS_Y( y ) (( y >= 0) && (y < (YRES)))
 
-#define MAGIC_DY_FUNCTION( ball_state_y, paddle_state_y )  ((ball_state_y+(BALL_HEIGHT/2)) - \
-								(paddle_state_y + (PADDLE_HEIGHT/2)))
+#define MAGIC_DY_FUNCTION( ball_state_y, paddle_state_y )  ((paddle_state_y + (PADDLE_HEIGHT/2)) - (ball_state_y+(BALL_HEIGHT/2)) )
 
 // if you change this to a non power of two - 1, remember to change to modulo in move_ball
 #define DY_MAX 3 

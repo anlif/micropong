@@ -100,13 +100,13 @@ static void init_timers(){
 	//Setup timer1: framebuffer output, with overflow interrupt.
 	TCE1.CTRLA = TC_CLKSEL_DIV1_gc;
 	TCE1.INTCTRLA = (TCE1.INTCTRLA & ~TC1_OVFINTLVL_gm) | TC_OVFINTLVL_MED_gc;
-	TCE1.PER = 0x200;
+	TCE1.PER = DRAW_INTERRUPT;
 
 
 	//Setup timer2: other stuff with overflow interrupt
 	TCE0.CTRLA = TC_CLKSEL_DIV1024_gc;
 	TCE0.INTCTRLA = (TCE0.INTCTRLA & ~TC1_OVFINTLVL_gm) | TC_OVFINTLVL_HI_gc;
-	TCE0.PER = 0x61a;
+	TCE0.PER = DRAW_FRAMERATE;
 }
 
 static void init_interrupts(){
