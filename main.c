@@ -16,8 +16,8 @@ static uint8_t get_paddle_y( uint8_t inp ){
 }
 
 static void init(){
-	hw_init();
 	pong_init();
+	hw_init();
 }
 
 
@@ -47,14 +47,17 @@ TODO: implement win/lose logic
 ISR(TCE0_OVF_vect){
 	static uint8_t paddle_left_y = 0;
 	static uint8_t paddle_right_y = 0;
+	static uint8_t status = PONG_NO_ERROR;
 	
 	paddle_left_y = ADCA.CH0.RES >> 5 - hw_get_ADC_min_shifted( HW_ADC_0, 5 );
 	paddle_right_y = ADCA.CH1.RES >> 5 - hw_get_ADC_min_shifted( HW_ADC_1, 5 );
 	
-	pong_move_ball();
+	status = pong_move_ball();
+	if( PONG_NO_ERROR != status ){
+		pong_restart();	
+	}
 	pong_move_paddle(PONG_PADDLE_LEFT, paddle_left_y);
 	pong_move_paddle(PONG_PADDLE_RIGHT, paddle_right_y);
-
 
 }
 

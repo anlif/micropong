@@ -3,7 +3,7 @@
 
 #define COLOR_GREEN (0462 >> 1)
 #define SCALE_FACTOR 6
-#define DRAW_RATE 5
+#define DRAW_RATE 20
 
 enum HW_INPUT_KEYS {
 	ONE_UP,

@@ -1,11 +1,11 @@
 #include "pong.h"
 #include "draw.h"
 #include <stdint.h>
-#include <stdio.h>
 
 static uint8_t paddle_left_state_y;
 static uint8_t paddle_right_state_y;
-static point_t ball_state;
+static uint8_t score[2];
+static ball_state_t ball_state;
 
 uint8_t pong_get_paddle_state(uint8_t piece){
 	switch(piece){
@@ -18,8 +18,20 @@ uint8_t pong_get_paddle_state(uint8_t piece){
 	}
 }
 
+static void pong_place_ball( point_t position, point_t* point_buffer){
+	for(uint8_t i = 0; i < BALL_WIDTH; ++i){
+		for(uint8_t j = 0; j < BALL_HEIGHT; j++){
+			uint8_t x = position.x + i;
+			uint8_t y = position.y + j;
+			point_buffer[BALL_OFFSET + i*BALL_HEIGHT + j].x = x;
+			point_buffer[BALL_OFFSET + i*BALL_HEIGHT + j].y = y;
+		}
+	}
+}
+
 void pong_init(){
 	static int first_run = 1;
+	score[PONG_PADDLE_LEFT] = score[PONG_PADDLE_RIGHT] = 0;
 
 	point_t paddle_left_origin = {PADDLE_LEFT_X,
 					YRES/2 - PADDLE_HEIGHT/2};
@@ -30,7 +42,10 @@ void pong_init(){
 	paddle_right_state_y = paddle_right_origin.y;
 
 	point_t ball_origin = {XRES/2-3, YRES/2-3};
-	ball_state.x = ball_origin.x; ball_state.y = ball_origin.y;
+	ball_state.pos.x = ball_origin.x; 
+	ball_state.pos.y = ball_origin.y;
+	ball_state.dx = -1; 
+	ball_state.dy = 0;
 
 	point_t points[PONG_BUFFER_SIZE];
 	for (uint8_t i = 0; i < PONG_BUFFER_SIZE; i++) {
@@ -51,14 +66,7 @@ void pong_init(){
 		}
 	}
 
-	for(uint8_t i = 0; i < BALL_WIDTH; ++i){
-		for(uint8_t j = 0; j < BALL_HEIGHT; j++){
-			uint8_t x = ball_origin.x + i;
-			uint8_t y = ball_origin.y + j;
-			points[BALL_OFFSET + i*BALL_HEIGHT + j].x = x;
-			points[BALL_OFFSET + i*BALL_HEIGHT + j].y = y;
-		}
-	}
+	pong_place_ball(ball_origin, points);
 	
 	for(uint8_t i = 0; i < LINE_SIZE; ++i){
 		points[LINE_OFFSET + i].x = XRES/2 - 1;
@@ -75,11 +83,33 @@ void pong_init(){
 	
 }
 
+
 void pong_restart(){
+	score[PONG_PADDLE_LEFT] = score[PONG_PADDLE_RIGHT] = 0;
 	pong_init();
 }
 
-uint8_t pong_add_point( uint8_t paddle ){
+uint8_t pong_handle_score( uint8_t paddle ){
+	score[paddle]++;
+	if(score[paddle] > 9){
+		return paddle == PONG_PADDLE_RIGHT ? PONG_WIN_RIGHT : PONG_WIN_LEFT;
+	}
+
+	switch( paddle ){
+		case PONG_PADDLE_RIGHT:
+			ball_state.dx = -1;
+			ball_state.dy = 0;
+			break;
+		case PONG_PADDLE_LEFT:
+			ball_state.dx = 1;
+			ball_state.dy = 0;
+			break;
+	}
+	ball_state.pos.x = XRES/2-3; 
+	ball_state.pos.y = YRES/2-3;
+	pong_place_ball( ball_state.pos, draw_get_back_buffer());
+	pong_draw_score(paddle, score[paddle]);
+	return PONG_NO_ERROR;
 }
 
 #define SCALE_DOWN 4
@@ -116,8 +146,6 @@ void pong_idle(){
 }
 
 uint8_t pong_move_ball(){
-	static int8_t dx = 1;
-	static int8_t dy = 0;
 	static uint8_t offset = 2*PADDLE_SIZE;
 	static uint8_t hits = 0;
 
@@ -125,63 +153,65 @@ uint8_t pong_move_ball(){
 	
 	// If collision, calc new dx/dy
 	// Left paddle collision:
-	if(ball_state.x <= PADDLE_LEFT_X+PADDLE_WIDTH && dx < 0){
+	if(ball_state.pos.x <= PADDLE_LEFT_X+PADDLE_WIDTH && ball_state.dx < 0){
 		// One of two, paddle right wins or ball bounces to the right 
-		if(ball_state.y >= paddle_left_state_y && ball_state.y <= paddle_left_state_y+PADDLE_HEIGHT){
-			dx = -dx;
+		if(ball_state.pos.y >= paddle_left_state_y && ball_state.pos.y <= paddle_left_state_y+PADDLE_HEIGHT){
+			ball_state.dx = -ball_state.dx;
 			++hits;
 		}
 		else{
-			dx = -1;
-			return PONG_WIN_RIGHT;
+			return pong_handle_score( PONG_PADDLE_RIGHT );
 		}
-		dy = (dy+MAGIC_DY_FUNCTION( ball_state.y, paddle_left_state_y ) & DY_MAX);
+		ball_state.dy = (ball_state.dy+MAGIC_DY_FUNCTION( ball_state.pos.y, paddle_left_state_y ) & DY_MAX);
 	}
 	
-	if(ball_state.x >= PADDLE_RIGHT_X-BALL_WIDTH && dx > 0){
+	if(ball_state.pos.x >= PADDLE_RIGHT_X-BALL_WIDTH && ball_state.dx > 0){
 		// One of two, paddle left wins or ball bounces to the left
-		if(ball_state.y >= paddle_right_state_y && ball_state.y <= paddle_right_state_y+PADDLE_HEIGHT){
-			dx = -dx;
+		if(ball_state.pos.y >= paddle_right_state_y && ball_state.pos.y <= paddle_right_state_y+PADDLE_HEIGHT){
+			ball_state.dx = -ball_state.dx;
 			++hits;
 		}
 		else{
-			dx = 1;
-			return PONG_WIN_LEFT;
+			return pong_handle_score( PONG_PADDLE_LEFT );
 		}
-		dy = ((dy+MAGIC_DY_FUNCTION(ball_state.y, paddle_right_state_y)) & DY_MAX);
+		ball_state.dy = ((ball_state.dy+MAGIC_DY_FUNCTION(ball_state.pos.y, paddle_right_state_y)) & DY_MAX);
 	}
 
 	if(hits == DX_INTERVAL){
-		dx += dx > 0? 1 : -1;
+		ball_state.dx += ball_state.dx > 0? 1 : -1;
 		hits = 0;
 	}
 	
-	if(ball_state.y == 0 || ball_state.y+BALL_HEIGHT == YRES ){
-		dy = -dy;
+	if(ball_state.pos.y == 0 || ball_state.pos.y+BALL_HEIGHT == YRES ){
+		ball_state.dy = -ball_state.dy;
 	}
 	
-	while(ball_state.y+BALL_HEIGHT + dy > YRES){
-		dy -= 1;
+	while(ball_state.pos.y+BALL_HEIGHT + ball_state.dy > YRES){
+		ball_state.dy -= 1;
 	}
 
-	while(ball_state.y + dy < 0){
-		dy += 1;
+	while(ball_state.pos.y + ball_state.dy < 0){
+		ball_state.dy += 1;
 	}
 
-	while(ball_state.x+BALL_WIDTH + dx > XRES){
-		dx -= 1;
+	while(ball_state.pos.x+BALL_WIDTH + ball_state.dx > XRES){
+		ball_state.dx -= 1;
 	}
 
-	while(ball_state.x + dx < 0){
-		dx += 1;
+	while(ball_state.pos.x + ball_state.dx < 0){
+		ball_state.dx += 1;
 	}
 	
-	ball_state.x = piece_buffer[offset].x + dx;
-	ball_state.y = piece_buffer[offset].y + dy;
+	ball_state.pos.x = piece_buffer[offset].x + ball_state.dx;
+	ball_state.pos.y = piece_buffer[offset].y + ball_state.dy;
+	
+	pong_place_ball(ball_state.pos, piece_buffer);
+#if 0
 	for(uint8_t i = offset; i < offset+BALL_SIZE; ++i){
-		piece_buffer[i].x += dx;
-		piece_buffer[i].y += dy;
+		piece_buffer[i].x += ball_state.dx;
+		piece_buffer[i].y += ball_state.dy;
 	}
+#endif
 
 	return PONG_NO_ERROR;
 }

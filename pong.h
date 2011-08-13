@@ -51,16 +51,22 @@
 #define DX_INTERVAL 4 
 
 enum {
-	PONG_NO_ERROR = 0,
-	PONG_ERROR,
-	PONG_PADDLE_LEFT,
+	PONG_PADDLE_LEFT = 0,
 	PONG_PADDLE_RIGHT,
+	PONG_NO_ERROR,
+	PONG_ERROR,
 	PONG_BALL,
 	PONG_WIN_LEFT,
 	PONG_WIN_RIGHT,
 	PONG_MOVE_ERROR,
 	PONG_GAME_OVER
 };
+
+typedef struct {
+	point_t pos;
+	int8_t dx;
+	int8_t dy;
+} ball_state_t;
 
 void pong_init();
 
