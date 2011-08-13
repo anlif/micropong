@@ -357,19 +357,19 @@ void pong_draw_number(point_t* buf, uint8_t number,
 	case 6:
 		for (i = 0; i < 12; i++) {
 			buf[i].x = orig_x + i%6;
-			buf[i].y = orig_y + i/7;
+			buf[i].y = orig_y + i/6;
 		}
 		buf[12].x = orig_x;
 		buf[13].x = orig_x + 1;
-		buf[12].y = buf[13].y = 2;
+		buf[12].y = buf[13].y = orig_y + 2;
 		for (i = 0; i < 6; i++) {
 			buf[14+i].x = buf[28+i].x = orig_x + i;
-			buf[14+i].y = 3;
-			buf[28+i].y = 6;
+			buf[14+i].y = orig_y + 3;
+			buf[28+i].y = orig_y + 6;
 		}
 		for (i = 0; i < 4; i++) {
 			buf[20+i].x = orig_x + i%2;
-			buf[20+i].y = orig_y + i/2;
+			buf[20+i].y = orig_y + 4 + i/2;
 			buf[24+i].x = orig_x + 4 + i%2;
 			buf[24+i].y = orig_y + 4 + i/2;
 		}
