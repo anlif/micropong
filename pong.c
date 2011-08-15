@@ -57,7 +57,8 @@ void pong_init(){
 		points = draw_get_back_buffer();
 	}
 
-	for (uint8_t i = 0; i < PONG_BUFFER_SIZE; i++) {
+	for (uint8_t i = 0; i < PONG_BUFFER_SIZE; i++) 
+	{
 		points[i].x = 0;
 		points[i].y = 0;
 	}
@@ -155,6 +156,24 @@ void pong_idle(){
 	}
 }
 
+static inline int8_t pong_dy_function(uint8_t paddle_state, uint8_t ball_state)
+{
+	switch(ball_state - paddle_state){
+		case -2:
+		case -1:
+		case  0:
+		case  1:
+			return -1;
+		case PADDLE_HEIGHT-2:
+		case PADDLE_HEIGHT-1:
+		case PADDLE_HEIGHT  :
+		case PADDLE_HEIGHT+1:
+			return 1;
+		default:
+			return 0;
+	}
+}
+
 uint8_t pong_move_ball(){
 	static uint8_t offset = 2*PADDLE_SIZE;
 	static uint8_t hits = 0;
@@ -165,26 +184,34 @@ uint8_t pong_move_ball(){
 	// Left paddle collision:
 	if(ball_state.pos.x <= PADDLE_LEFT_X+PADDLE_WIDTH && ball_state.dx < 0){
 		// One of two, paddle right wins or ball bounces to the right 
-		if(ball_state.pos.y >= paddle_left_state_y && ball_state.pos.y <= paddle_left_state_y+PADDLE_HEIGHT){
+		if(ball_state.pos.y+BALL_HEIGHT+PADDLE_SLACK>= paddle_left_state_y 
+				&& ball_state.pos.y <= paddle_left_state_y+PADDLE_HEIGHT)
+		{
 			ball_state.dx = -ball_state.dx;
 			++hits;
 		}
 		else{
 			return pong_handle_score( PONG_PADDLE_RIGHT );
 		}
-		ball_state.dy = (ball_state.dy+MAGIC_DY_FUNCTION( ball_state.pos.y, paddle_left_state_y ) & DY_MAX);
+		ball_state.dy += pong_dy_function(paddle_left_state_y, ball_state.pos.y);
+		//ball_state.dy = ((ball_state.dy+MAGIC_DY_FUNCTION( ball_state.pos.y, paddle_left_state_y )) & DY_MAX);
 	}
 	
-	if(ball_state.pos.x >= PADDLE_RIGHT_X-BALL_WIDTH && ball_state.dx > 0){
+	if(ball_state.pos.x >= PADDLE_RIGHT_X-BALL_WIDTH 
+			&& ball_state.dx > 0)
+	{
 		// One of two, paddle left wins or ball bounces to the left
-		if(ball_state.pos.y >= paddle_right_state_y && ball_state.pos.y <= paddle_right_state_y+PADDLE_HEIGHT){
+		if(ball_state.pos.y+BALL_HEIGHT+PADDLE_SLACK >= paddle_right_state_y 
+				&& ball_state.pos.y <= paddle_right_state_y+PADDLE_HEIGHT)
+		{
 			ball_state.dx = -ball_state.dx;
 			++hits;
 		}
 		else{
 			return pong_handle_score( PONG_PADDLE_LEFT );
 		}
-		ball_state.dy = ((ball_state.dy+MAGIC_DY_FUNCTION(ball_state.pos.y, paddle_right_state_y)) & DY_MAX);
+		ball_state.dy += pong_dy_function(paddle_right_state_y, ball_state.pos.y);
+		//ball_state.dy = ((ball_state.dy+MAGIC_DY_FUNCTION(ball_state.pos.y, paddle_right_state_y)) & DY_MAX);
 	}
 
 	if(hits == DX_INTERVAL){
@@ -231,7 +258,7 @@ uint8_t pong_move_paddle(uint8_t piece, uint8_t y){
 	point_t* piece_buffer = draw_get_back_buffer(); 		
 	
 	// FIXME: Why do I need - 2 here????
-	if(!IN_BOUNDS_Y(y) || !IN_BOUNDS_Y(y+PADDLE_HEIGHT-2)){ 
+	if(!IN_BOUNDS_Y(y) || !IN_BOUNDS_Y(y+PADDLE_HEIGHT)){ 
 		return PONG_MOVE_ERROR;
 	}
 
